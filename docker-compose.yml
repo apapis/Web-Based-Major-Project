@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./Aplication/Web-Based Major Project - API/Web-Based Major Project - API
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./Aplication/Web-Based Major Project - API:/app
+      - /app/bin
+      - /app/obj
+    working_dir: /app/Web-Based Major Project - API
+    command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:80"]
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: ./Aplication/Client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./Aplication/Client:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "run", "dev"]
+
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: store
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

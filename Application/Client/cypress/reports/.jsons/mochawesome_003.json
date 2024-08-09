@@ -1,0 +1,181 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 5,
+    "pending": 0,
+    "failures": 0,
+    "start": "2024-05-02T17:28:59.176Z",
+    "end": "2024-05-02T17:29:10.444Z",
+    "duration": 11268,
+    "testsRegistered": 5,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "eda97989-a3cc-4b20-adc0-a4f6faa93461",
+      "title": "",
+      "fullFile": "cypress\\e2e\\menuAndHomePage.cy.ts",
+      "file": "cypress\\e2e\\menuAndHomePage.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+          "title": "Tests for menu editor and home page",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Go to the home page without logging in",
+              "fullTitle": "Tests for menu editor and home page Go to the home page without logging in",
+              "timedOut": null,
+              "duration": 767,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/\");\n// Sprawdź, czy na stronie znajduje się napis \"Today's Menu\" lub \"Sorry we are closed today\"\ncy.contains(/Today's Menu|Sorry we are closed today/).should(\"exist\");",
+              "err": {},
+              "uuid": "5a92d0d3-4a0d-4000-8a07-f42d3d77ff45",
+              "parentUUID": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Go to the menu editor page after login in",
+              "fullTitle": "Tests for menu editor and home page Go to the menu editor page after login in",
+              "timedOut": null,
+              "duration": 1395,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Menu panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/menu\");",
+              "err": {},
+              "uuid": "8e6e366e-90ec-4462-8f43-351528782c35",
+              "parentUUID": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Add a meal to today's menu and check if it is available on the home page and if they display Allergies.",
+              "fullTitle": "Tests for menu editor and home page Add a meal to today's menu and check if it is available on the home page and if they display Allergies.",
+              "timedOut": null,
+              "duration": 3107,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Menu panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/menu\");\ncy.get(`[data-testid=\"Add meal for ${today}\"]`).click();\ncy.get('[data-testid=\"Add meal Test Meal Cypress - Allergies(Dairy)\"]')\n    .first()\n    .click();\ncy.get('[data-testid=\"Add meal Test Meal Cypress - Allergies(Nuts)\"]')\n    .first()\n    .click();\ncy.get('[data-testid=\"Add meal Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\"]')\n    .first()\n    .click();\ncy.get('[data-testid=\"Save meal to menu\"]').click();\ncy.visit(\"http://localhost:5174/\");\ncy.contains(\"Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\").should(\"be.visible\");\ncy.get('[data-testid=\"Menu item Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\"]')\n    .should(\"be.visible\")\n    .and(\"contain.text\", \"nuts, dairy\");",
+              "err": {},
+              "uuid": "95e7e935-adbb-4f28-b270-054ebf889a68",
+              "parentUUID": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Check if deleting meals from the menu is working and updating the home page.",
+              "fullTitle": "Tests for menu editor and home page Check if deleting meals from the menu is working and updating the home page.",
+              "timedOut": null,
+              "duration": 2105,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Menu panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/menu\");\ncy.get(`[data-testid=\"Remove menu meal Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\"]`).click();\ncy.visit(\"http://localhost:5174/\");\ncy.get('[data-testid=\"Menu item Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\"]').should(\"not.exist\");",
+              "err": {},
+              "uuid": "62d4720b-7421-45b0-8e48-fe88ded9f808",
+              "parentUUID": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Check if changing is restaurant open change something on home page.",
+              "fullTitle": "Tests for menu editor and home page Check if changing is restaurant open change something on home page.",
+              "timedOut": null,
+              "duration": 2130,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Menu panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/menu\");\ncy.get(`[data-testid=\"Menu for ${today}\"]`) // Znajdź element OneMenu dla określonego dnia tygodnia\n    .find('input[type=\"checkbox\"]') // Znajdź checkbox wewnątrz OneMenu\n    .click({ force: true });\ncy.visit(\"http://localhost:5174/\");\n// Sprawdź, czy na stronie znajduje się napis \"Today's Menu\" lub \"Sorry we are closed today\"\ncy.contains(\"Sorry, we are closed today. Please come back another day.\").should(\"exist\");",
+              "err": {},
+              "uuid": "54babcd5-d67c-41ac-9709-de09de40614b",
+              "parentUUID": "a7016c4a-868a-4c3d-81d8-039ff63e150a",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "5a92d0d3-4a0d-4000-8a07-f42d3d77ff45",
+            "8e6e366e-90ec-4462-8f43-351528782c35",
+            "95e7e935-adbb-4f28-b270-054ebf889a68",
+            "62d4720b-7421-45b0-8e48-fe88ded9f808",
+            "54babcd5-d67c-41ac-9709-de09de40614b"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 9504,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress\\reports\\.jsons",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

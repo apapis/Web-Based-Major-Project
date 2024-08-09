@@ -1,0 +1,181 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 5,
+    "pending": 0,
+    "failures": 0,
+    "start": "2024-05-02T17:28:30.073Z",
+    "end": "2024-05-02T17:28:57.096Z",
+    "duration": 27023,
+    "testsRegistered": 5,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "98df4d3d-4af4-43f2-b4d5-16dc03ff2345",
+      "title": "",
+      "fullFile": "cypress\\e2e\\meals.cy.ts",
+      "file": "cypress\\e2e\\meals.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+          "title": "All operation with products",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Go to product list",
+              "fullTitle": "All operation with products Go to product list",
+              "timedOut": null,
+              "duration": 1816,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Meals List\").click();\ncy.contains(\"Meals list page\").should(\"be.visible\");",
+              "err": {},
+              "uuid": "f223f836-0315-4960-8dee-1701690f30aa",
+              "parentUUID": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Add new meal",
+              "fullTitle": "All operation with products Add new meal",
+              "timedOut": null,
+              "duration": 5027,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n//Login and go to meal list page\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Meals List\").click();\ncy.contains(\"Meals list page\").should(\"be.visible\");\ncy.get('[data-testid=\"Add new meal\"]').click();\n// Sprawdzenie walidacji pól formularza\ncy.get('[data-testid=\"Submit button for meal manager\"]').click();\n// Sprawdzenie, czy pojawiają się komunikaty o błędach walidacji\ncy.contains(\"Name is required\").should(\"be.visible\");\ncy.contains(\"For how many people is required\").should(\"be.visible\");\ncy.contains(\"Description is required\").should(\"be.visible\");\n// Wypełnienie pól formularza nieprawidłowymi wartościami\ncy.get('input[name=\"name\"]').type(\"Test Meal Cypress\");\ncy.get('input[name=\"numberOfPeople\"]').type(\"0\");\ncy.get('textarea[name=\"description\"]').type(\"Test Description\");\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy pojawia się komunikat o błędzie dla pola \"numberOfPeople\"\ncy.contains(\"For how many people must be greater than 0\").should(\"be.visible\");\n// Wypełnienie pola \"numberOfPeople\" prawidłową wartością\ncy.get('input[name=\"numberOfPeople\"]').clear().type(\"2\");\n// Dodanie produktu do posiłku\ncy.get('[data-testid=\"product-select Beef\"]').first().click();\ncy.get('[data-testid=\"product-select Beef add value\"]').type(\"100\");\n// Dodanie kosztu do posiłku\ncy.get('[data-testid=\"cost-add-new\"]').click();\ncy.get('input[name=\"costs.0.name\"]').first().type(\"Cost 1\");\ncy.get('input[name=\"costs.0.value\"]').type(\"10\");\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy nowy posiłek znajduje się na liście\ncy.contains(\"Test Meal Cypress\").should(\"be.visible\");",
+              "err": {},
+              "uuid": "d7c1e1da-e69c-4087-aa9a-9bef71a67a19",
+              "parentUUID": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Edit meal",
+              "fullTitle": "All operation with products Edit meal",
+              "timedOut": null,
+              "duration": 4709,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n// Login and go to meal list page\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Meals List\").click();\ncy.contains(\"Meals list page\").should(\"be.visible\");\n// Kliknij przycisk edycji dla posiłku \"Test Meal Cypress\"\ncy.get('[data-testid=\"Edit meal Test Meal Cypress\"]').first().click();\n// Sprawdzenie, czy znajdujemy się na stronie edycji posiłku\ncy.contains(\"Edit Meal\").should(\"be.visible\");\n// Zaktualizuj pola formularza\ncy.get('input[name=\"name\"]').clear().type(\"Updated Test Meal Cypress\");\ncy.get('input[name=\"numberOfPeople\"]').clear().type(\"4\");\ncy.get('textarea[name=\"description\"]')\n    .clear()\n    .type(\"Updated Test Description\");\n// Zaktualizuj ilość produktu\ncy.get('[data-testid=\"product-select Beef add value\"]').clear().type(\"200\");\n// Dodaj nowy koszt\ncy.get('[data-testid=\"cost-add-new\"]').click();\ncy.get('input[name=\"costs.1.name\"]').type(\"Cost 2\");\ncy.get('input[name=\"costs.1.value\"]').type(\"20\");\n// Usuń pierwszy koszt\ncy.get('[data-testid=\"cost-remove\"]').first().click();\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy zaktualizowany posiłek znajduje się na liście\ncy.contains(\"Updated Test Meal Cypress\").should(\"be.visible\");",
+              "err": {},
+              "uuid": "5bc0565c-2675-4d4d-ab16-6b4ab41caf3c",
+              "parentUUID": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Add 3 more meals for testing Allergies",
+              "fullTitle": "All operation with products Add 3 more meals for testing Allergies",
+              "timedOut": null,
+              "duration": 8878,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n//Login and go to meal list page\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Meals List\").click();\ncy.contains(\"Meals list page\").should(\"be.visible\");\n// Add first meal wit nut Allergies\ncy.get('[data-testid=\"Add new meal\"]').click();\n// Sprawdzenie walidacji pól formularza\ncy.get('[data-testid=\"Submit button for meal manager\"]').click();\ncy.get('input[name=\"name\"]').type(\"Test Meal Cypress - Allergies(Nuts)\");\ncy.get('input[name=\"numberOfPeople\"]').type(\"2\");\ncy.get('textarea[name=\"description\"]').type(\"Test Description\");\n// Dodanie produktu do posiłku\ncy.get('[data-testid=\"product-select Beef\"]').first().click();\ncy.get('[data-testid=\"product-select Beef add value\"]').type(\"100\");\ncy.get('[data-testid=\"product-select Mushrooms and nuts\"]').first().click();\ncy.get('[data-testid=\"product-select Mushrooms and nuts add value\"]').type(\"50\");\n// Dodanie kosztu do posiłku\ncy.get('[data-testid=\"cost-add-new\"]').click();\ncy.get('input[name=\"costs.0.name\"]').first().type(\"Cost 1\");\ncy.get('input[name=\"costs.0.value\"]').type(\"10\");\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy nowy posiłek znajduje się na liście\ncy.contains(\"Test Meal Cypress - Allergies(Nuts)\").should(\"be.visible\");\ncy.get('[data-testid=\"Allergies Test Meal Cypress - Allergies(Nuts)\"]')\n    .should(\"be.visible\")\n    .and(\"contain.text\", \"nuts\");\n//Add second meal with dairy allergy\ncy.get('[data-testid=\"Add new meal\"]').click();\ncy.get('input[name=\"name\"]').type(\"Test Meal Cypress - Allergies(Dairy)\");\ncy.get('input[name=\"numberOfPeople\"]').type(\"4\");\ncy.get('textarea[name=\"description\"]').type(\"Test Description\");\n// Dodanie produktu do posiłku\ncy.get('[data-testid=\"product-select Beef\"]').first().click();\ncy.get('[data-testid=\"product-select Beef add value\"]').type(\"50\");\ncy.get('[data-testid=\"product-select Cheddar Cheese\"]').first().click();\ncy.get('[data-testid=\"product-select Cheddar Cheese add value\"]').type(\"70\");\n// Dodanie kosztu do posiłku\ncy.get('[data-testid=\"cost-add-new\"]').click();\ncy.get('input[name=\"costs.0.name\"]').first().type(\"Cost 1\");\ncy.get('input[name=\"costs.0.value\"]').type(\"10\");\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy nowy posiłek znajduje się na liście\ncy.contains(\"Test Meal Cypress\").should(\"be.visible\");\ncy.get('[data-testid=\"Allergies Test Meal Cypress - Allergies(Dairy)\"]')\n    .should(\"be.visible\")\n    .and(\"contain.text\", \"dairy\");\n//Add third meal with glutne allergy\ncy.get('[data-testid=\"Add new meal\"]').click();\ncy.get('input[name=\"name\"]').type(\"Test Meal Cypress - Allergies(Gluten)\");\ncy.get('input[name=\"numberOfPeople\"]').type(\"4\");\ncy.get('textarea[name=\"description\"]').type(\"Test Description\");\n// Dodanie produktu do posiłku\ncy.get('[data-testid=\"product-select Beef\"]').first().click();\ncy.get('[data-testid=\"product-select Beef add value\"]').type(\"90\");\ncy.get('[data-testid=\"product-select Pasta\"]').first().click();\ncy.get('[data-testid=\"product-select Pasta add value\"]').type(\"100\");\n// Dodanie kosztu do posiłku\ncy.get('[data-testid=\"cost-add-new\"]').click();\ncy.get('input[name=\"costs.0.name\"]').first().type(\"Cost 1\");\ncy.get('input[name=\"costs.0.value\"]').type(\"30\");\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy nowy posiłek znajduje się na liście\ncy.contains(\"Test Meal Cypress - Allergies(Gluten)\").should(\"be.visible\");\ncy.get('[data-testid=\"Allergies Test Meal Cypress - Allergies(Gluten)\"]')\n    .should(\"be.visible\")\n    .and(\"contain.text\", \"gluten\");",
+              "err": {},
+              "uuid": "9c1f074e-7797-45d5-b4d1-d0162be476c8",
+              "parentUUID": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Check if allergies are updated correctly",
+              "fullTitle": "All operation with products Check if allergies are updated correctly",
+              "timedOut": null,
+              "duration": 4536,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n//Login and go to meal list page\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Meals List\").click();\ncy.contains(\"Meals list page\").should(\"be.visible\");\ncy.get('[data-testid=\"Edit meal Test Meal Cypress - Allergies(Gluten)\"]')\n    .first()\n    .click();\n// Sprawdzenie, czy znajdujemy się na stronie edycji posiłku\ncy.contains(\"Edit Meal\").should(\"be.visible\");\n// Zaktualizuj pola formularza\ncy.get('input[name=\"name\"]')\n    .clear()\n    .type(\"Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\");\ncy.get('input[name=\"numberOfPeople\"]').clear().type(\"4\");\n// Dodanie produktu do posiłku\ncy.get('[data-testid=\"product-select Beef add value\"]').type(\"20\");\ncy.get('[data-testid=\"product-select Pasta\"]').first().click();\ncy.get('[data-testid=\"product-select Cheddar Cheese\"]').first().click();\ncy.get('[data-testid=\"product-select Cheddar Cheese add value\"]').type(\"20\");\ncy.get('[data-testid=\"product-select Mushrooms and nuts\"]').first().click();\ncy.get('[data-testid=\"product-select Mushrooms and nuts add value\"]').type(\"20\");\n// Przesłanie formularza\ncy.get('button[type=\"submit\"]').click();\n// Sprawdzenie, czy nastąpiło przekierowanie na stronę listy posiłków\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals/mealsList\");\n// Sprawdzenie, czy nowy posiłek znajduje się na liście\ncy.contains(\"Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\").should(\"be.visible\");\ncy.get('[data-testid=\"Allergies Updated Test Meal Cypress - Allergies(Gluten) to (Nuts & Diary)\"]')\n    .should(\"be.visible\")\n    .and(\"contain.text\", \"nuts, dairy\");",
+              "err": {},
+              "uuid": "3db6f69f-622a-4b3e-9513-d8ce0d2f64ce",
+              "parentUUID": "5df2c186-5431-4fb2-a50d-21ec0df186e3",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "f223f836-0315-4960-8dee-1701690f30aa",
+            "d7c1e1da-e69c-4087-aa9a-9bef71a67a19",
+            "5bc0565c-2675-4d4d-ab16-6b4ab41caf3c",
+            "9c1f074e-7797-45d5-b4d1-d0162be476c8",
+            "3db6f69f-622a-4b3e-9513-d8ce0d2f64ce"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 24966,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress\\reports\\.jsons",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

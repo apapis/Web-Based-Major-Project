@@ -1,0 +1,12 @@
+stages:
+  - test
+
+run-tests:
+  stage: test
+  image: node:latest
+  script:
+    - cd Aplication/Client/
+    - npm install
+    - npm run test
+  only:
+    - develop

@@ -1,0 +1,124 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2024-05-02T17:28:13.806Z",
+    "end": "2024-05-02T17:28:27.951Z",
+    "duration": 14145,
+    "testsRegistered": 2,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "c22df166-8b23-43e9-b021-c853f0a10de1",
+      "title": "",
+      "fullFile": "cypress\\e2e\\product.cy.ts",
+      "file": "cypress\\e2e\\product.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "9a8c795f-560e-4b5b-ab07-5e7a37ffbaa0",
+          "title": "All operation with products",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Go to product list",
+              "fullTitle": "All operation with products Go to product list",
+              "timedOut": null,
+              "duration": 2363,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n// Wprowadź dane logowania\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\n// Kliknij przycisk logowania\ncy.get('button[type=\"submit\"]').click();\n// Sprawdź, czy nastąpiło przekierowanie na stronę po zalogowaniu\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\n// Sprawdź, czy na stronie po zalogowaniu znajduje się oczekiwany element\ncy.contains(\"Admin Panel\").should(\"be.visible\");\n// Kliknij przycisk \"Meals\"\ncy.get('[data-testid=\"Meals panel\"]').click();\n// Sprawdź, czy nastąpiło przekierowanie na stronę Meals\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Product List\").click();\n// Sprawdź, czy na stronie Meals znajduje się oczekiwany element\ncy.contains(\"Products List\").should(\"be.visible\");",
+              "err": {},
+              "uuid": "c46071fb-a66d-4b59-befa-b215b5a2033d",
+              "parentUUID": "9a8c795f-560e-4b5b-ab07-5e7a37ffbaa0",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Check adding and editing product",
+              "fullTitle": "All operation with products Check adding and editing product",
+              "timedOut": null,
+              "duration": 10091,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit(\"http://localhost:5174/admin\");\n// Wprowadź dane logowania\ncy.get('input[type=\"email\"]').type(\"papisadamt@gmail.com\");\ncy.get('input[type=\"password\"]').type(\"6830Htidk$@jj\");\ncy.get('button[type=\"submit\"]').click();\n// Sprawdź, czy nastąpiło przekierowanie na stronę po zalogowaniu\ncy.url().should(\"eq\", \"http://localhost:5174/admin\");\ncy.contains(\"Admin Panel\").should(\"be.visible\");\ncy.get('[data-testid=\"Meals panel\"]').click();\ncy.url().should(\"eq\", \"http://localhost:5174/admin/meals\");\ncy.contains(\"Product List\").click();\n// Sprawdź, czy na stronie Meals znajduje się oczekiwany element\ncy.contains(\"Products List\").should(\"be.visible\");\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\n// Kliknij przycisk \"Add product\" bez wypełniania pól formularza\ncy.contains(\"Add product\").click();\n// Sprawdź, czy pojawiają się komunikaty o błędach walidacji\ncy.contains(\"Name is required\").should(\"be.visible\");\ncy.contains(\"Store is required\").should(\"be.visible\");\ncy.contains(\"Weight must be greater than 0\").should(\"be.visible\");\ncy.contains(\"Price must be greater than 0\").should(\"be.visible\");\n// Wypełnij pola formularza nieprawidłowymi wartościami\ncy.get('input[name=\"name\"]').type(\"Test Product cypress\");\ncy.get('input[name=\"store\"]').type(\"Test Store\");\ncy.get('input[name=\"weight\"]').type(\"0\");\ncy.get('input[name=\"price\"]').type(\"-10\");\n// Kliknij przycisk \"Add product\"\ncy.contains(\"Add product\").click();\n// Sprawdź, czy pojawiają się komunikaty o błędach walidacji dla wartości\ncy.contains(\"Weight must be greater than 0\").should(\"be.visible\");\ncy.contains(\"Price must be greater than 0\").should(\"be.visible\");\ncy.get('input[name=\"weight\"]').type(\"100\");\ncy.get('input[name=\"price\"]').type(\"100\");\ncy.contains(\"Add product\").click();\ncy.contains(\"Test Product cypress\").should(\"be.visible\");\n// Kliknij ikonkę edycji dla produktu \"Test Product cypress\"\ncy.get('[data-testid=\"Edit Test Product cypress\"]').click();\ncy.get('input[name=\"name\"]').clear().type(\"Updated Test Product cypress\");\ncy.contains(\"Save product\").click();\ncy.contains(\"Updated Test Product cypress\").should(\"be.visible\");\ncy.get('[data-testid=\"Delet Updated Test Product cypress\"]').click();\ncy.contains(\"Updated Test Product cypress\").should(\"not.exist\");\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Mushrooms and nuts\");\ncy.get('input[name=\"store\"]').type(\"Tesco\");\ncy.get('input[name=\"weight\"]').type(\"500\");\ncy.get('input[name=\"price\"]').type(\"7\");\ncy.get('input[name=\"nuts\"]').check();\ncy.contains(\"Add product\").click();\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Cheddar Cheese\");\ncy.get('input[name=\"store\"]').type(\"Lidl\");\ncy.get('input[name=\"weight\"]').type(\"400\");\ncy.get('input[name=\"price\"]').type(\"12\");\ncy.get('input[name=\"dairy\"]').check();\ncy.contains(\"Add product\").click();\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Pasta\");\ncy.get('input[name=\"store\"]').type(\"Lidl\");\ncy.get('input[name=\"weight\"]').type(\"1000\");\ncy.get('input[name=\"price\"]').type(\"5\");\ncy.get('input[name=\"gluten\"]').check();\ncy.contains(\"Add product\").click();\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Bag Salad\");\ncy.get('input[name=\"store\"]').type(\"Tesco\");\ncy.get('input[name=\"weight\"]').type(\"90\");\ncy.get('input[name=\"price\"]').type(\"2\");\ncy.contains(\"Add product\").click();\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Beef\");\ncy.get('input[name=\"store\"]').type(\"Tesco\");\ncy.get('input[name=\"weight\"]').type(\"500\");\ncy.get('input[name=\"price\"]').type(\"25\");\ncy.contains(\"Add product\").click();\ncy.contains(\"Add new Product\").click();\ncy.contains(\"Add new product\").should(\"be.visible\");\ncy.get('input[name=\"name\"]').type(\"Potatoes\");\ncy.get('input[name=\"store\"]').type(\"Tesco\");\ncy.get('input[name=\"weight\"]').type(\"1000\");\ncy.get('input[name=\"price\"]').type(\"2\");\ncy.contains(\"Add product\").click();",
+              "err": {},
+              "uuid": "d8d10eab-201a-4c3d-af9f-c86b40b768a1",
+              "parentUUID": "9a8c795f-560e-4b5b-ab07-5e7a37ffbaa0",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "c46071fb-a66d-4b59-befa-b215b5a2033d",
+            "d8d10eab-201a-4c3d-af9f-c86b40b768a1"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 12454,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress\\reports\\.jsons",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}
