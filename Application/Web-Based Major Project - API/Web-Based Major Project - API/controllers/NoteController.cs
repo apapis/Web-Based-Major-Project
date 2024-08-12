@@ -1,19 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Services;
 
-namespace Web_Based_Major_Project___API.controllers
+namespace Web_Based_Major_Project___API.Controllers
 {
     [Authorize]
     [Route("api/note")]
     public class NoteController : ControllerBase
     {
-        private readonly RestaurantContext _dbContext;
+        private readonly NoteService _noteService;
 
-        public NoteController(RestaurantContext dbContext)
+        public NoteController(NoteService noteService)
         {
-            _dbContext = dbContext;
+            _noteService = noteService;
         }
 
         [HttpPost]
@@ -24,14 +25,7 @@ namespace Web_Based_Major_Project___API.controllers
                 return BadRequest(ModelState);
             }
 
-            var note = new Note
-            {
-                Text = createNoteDto.Text,
-                Status = createNoteDto.Status
-            };
-
-            _dbContext.Notes.Add(note);
-            _dbContext.SaveChanges();
+            var note = _noteService.CreateNote(createNoteDto);
 
             var noteDto = new NoteDto
             {
@@ -46,34 +40,19 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpGet]
         public ActionResult<IEnumerable<NoteDto>> GetAllNotes()
         {
-            var notes = _dbContext.Notes
-                .Select(n => new NoteDto
-                {
-                    Id = n.Id,
-                    Text = n.Text,
-                    Status = n.Status
-                })
-                .ToList();
-
+            var notes = _noteService.GetAllNotes();
             return Ok(notes);
         }
 
         [HttpGet("{id}")]
         public ActionResult<NoteDto> GetNoteById(int id)
         {
-            var note = _dbContext.Notes.Find(id);
+            var noteDto = _noteService.GetNoteById(id);
 
-            if (note == null)
+            if (noteDto == null)
             {
                 return NotFound();
             }
-
-            var noteDto = new NoteDto
-            {
-                Id = note.Id,
-                Text = note.Text,
-                Status = note.Status
-            };
 
             return Ok(noteDto);
         }
@@ -81,24 +60,12 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpPut("{id}")]
         public ActionResult<NoteDto> UpdateNote(int id, [FromBody] UpdateNoteDto updateNoteDto)
         {
-            var note = _dbContext.Notes.Find(id);
+            var noteDto = _noteService.UpdateNote(id, updateNoteDto);
 
-            if (note == null)
+            if (noteDto == null)
             {
                 return NotFound();
             }
-
-            note.Text = updateNoteDto.Text;
-            note.Status = updateNoteDto.Status;
-
-            _dbContext.SaveChanges();
-
-            var noteDto = new NoteDto
-            {
-                Id = note.Id,
-                Text = note.Text,
-                Status = note.Status
-            };
 
             return Ok(noteDto);
         }
@@ -106,15 +73,12 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteNote(int id)
         {
-            var note = _dbContext.Notes.Find(id);
+            var success = _noteService.DeleteNote(id);
 
-            if (note == null)
+            if (!success)
             {
                 return NotFound();
             }
-
-            _dbContext.Notes.Remove(note);
-            _dbContext.SaveChanges();
 
             return NoContent();
         }
@@ -124,7 +88,6 @@ namespace Web_Based_Major_Project___API.controllers
             public string Text { get; set; }
             public bool Status { get; set; }
         }
-
 
         public class CreateNoteDto
         {
