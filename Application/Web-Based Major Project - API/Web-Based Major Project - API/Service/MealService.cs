@@ -1,12 +1,13 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Web_Based_Major_Project___API.Entities;
-using System.IO;
-using Microsoft.AspNetCore.Http;
-using System;
 using Web_Based_Major_Project___API.DTO;
+using Web_Based_Major_Project___API.Entities;
 
 public class MealService
 {
@@ -17,6 +18,212 @@ public class MealService
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task<MealDto> CreateMealAsync(CreateMealDto mealDto)
+    {
+        if (mealDto.NumberOfPeople <= 0)
+        {
+            throw new ArgumentException("NumberOfPeople must be greater than 0.");
+        }
+
+        if (string.IsNullOrEmpty(mealDto.Name))
+        {
+            throw new ArgumentException("Meal name is required.");
+        }
+
+        var products = JsonConvert.DeserializeObject<List<CreateMealProductDto>>(mealDto.Products);
+        var costs = JsonConvert.DeserializeObject<List<CreateMealCostDto>>(mealDto.Costs);
+
+        var meal = new Meal
+        {
+            Name = mealDto.Name,
+            Description = mealDto.Description,
+            NumberOfPeople = mealDto.NumberOfPeople
+        };
+
+        _dbContext.Meals.Add(meal);
+        await _dbContext.SaveChangesAsync(); // Save the Meal entity first
+
+        meal.Pricing = new MealPricing
+        {
+            Id = meal.Id, // Ensure the Ids match
+            Price = mealDto.Price,
+            Costs = costs.Select(c => new MealCost { Name = c.Name, Value = c.Value, MealPricingId = meal.Id }).ToList()
+        };
+
+        meal.Ingredients = new MealIngredients
+        {
+            Id = meal.Id, // Ensure the Ids match
+            Products = products.Select(p => new MealProduct { ProductId = p.ProductId, Quantity = p.Quantity, MealIngredientsId = meal.Id }).ToList()
+        };
+
+        meal.Allergens = new MealAllergens
+        {
+            Id = meal.Id,
+            MealId = meal.Id
+        };
+
+        _dbContext.MealPricings.Add(meal.Pricing);
+        _dbContext.MealIngredients.Add(meal.Ingredients);
+        _dbContext.MealAllergens.Add(meal.Allergens);
+
+        if (mealDto.Images != null && mealDto.Images.Count > 0)
+        {
+            foreach (var image in mealDto.Images)
+            {
+                if (image != null && image.Length > 0)
+                {
+                    var imageUrl = await SaveImageAsync(image);
+                    var mealImage = new MealImage { ImageUrl = imageUrl, MealId = meal.Id };
+                    _dbContext.MealImages.Add(mealImage);
+                }
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(); // Save all related entities
+
+        AggregateAllergens(meal);
+        UpdateMealAfterProductChange(meal);
+
+        await _dbContext.SaveChangesAsync();
+
+        return MapMealToDto(meal);
+    }
+
+    public async Task<MealDto> UpdateMealAsync(int id, UpdateMealDto mealDto)
+    {
+        var meal = await _dbContext.Meals
+            .Include(m => m.Pricing)
+                .ThenInclude(p => p.Costs)
+            .Include(m => m.Ingredients)
+                .ThenInclude(i => i.Products)
+                    .ThenInclude(p => p.Product)
+                        .ThenInclude(p => p.Allergens)
+            .Include(m => m.Images)
+            .Include(m => m.Allergens)
+                .ThenInclude(a => a.Allergens)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (meal == null)
+        {
+            return null;
+        }
+
+        var products = JsonConvert.DeserializeObject<List<CreateMealProductDto>>(mealDto.Products);
+        var costs = JsonConvert.DeserializeObject<List<CreateMealCostDto>>(mealDto.Costs);
+        var existingImageUrls = JsonConvert.DeserializeObject<List<string>>(mealDto.ExistingImageUrls);
+
+        meal.Name = mealDto.Name;
+        meal.Description = mealDto.Description;
+        meal.NumberOfPeople = mealDto.NumberOfPeople;
+        meal.Pricing.Price = mealDto.Price;
+
+        _dbContext.MealProducts.RemoveRange(meal.Ingredients.Products);
+        meal.Ingredients.Products = products.Select(p => new MealProduct { ProductId = p.ProductId, Quantity = p.Quantity, MealIngredientsId = meal.Ingredients.Id }).ToList();
+
+        _dbContext.MealCosts.RemoveRange(meal.Pricing.Costs);
+        meal.Pricing.Costs = costs.Select(c => new MealCost { Name = c.Name, Value = c.Value, MealPricingId = meal.Pricing.Id }).ToList();
+
+        if (mealDto.Images != null && mealDto.Images.Count > 0)
+        {
+            var imagesToRemove = meal.Images.Where(i => !existingImageUrls.Contains(i.ImageUrl)).ToList();
+            _dbContext.MealImages.RemoveRange(imagesToRemove);
+
+            foreach (var image in mealDto.Images)
+            {
+                if (image != null && image.Length > 0)
+                {
+                    var imageUrl = await SaveImageAsync(image);
+                    var mealImage = new MealImage { ImageUrl = imageUrl, MealId = meal.Id };
+                    _dbContext.MealImages.Add(mealImage);
+                }
+            }
+        }
+        else
+        {
+            var imagesToRemove = meal.Images.Where(i => !existingImageUrls.Contains(i.ImageUrl)).ToList();
+            _dbContext.MealImages.RemoveRange(imagesToRemove);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        AggregateAllergens(meal);
+        UpdateMealAfterProductChange(meal);
+
+        await _dbContext.SaveChangesAsync();
+
+        return MapMealToDto(meal);
+    }
+
+    public async Task<IEnumerable<MealDto>> GetAllMealsAsync()
+    {
+        var meals = await _dbContext.Meals
+            .Include(m => m.Pricing)
+                .ThenInclude(p => p.Costs)
+            .Include(m => m.Ingredients)
+                .ThenInclude(i => i.Products)
+                    .ThenInclude(p => p.Product)
+                        .ThenInclude(p => p.Allergens)
+            .Include(m => m.Images)
+            .Include(m => m.Allergens)
+                .ThenInclude(a => a.Allergens)
+            .ToListAsync();
+
+        return meals.Select(m => MapMealToDto(m)).ToList();
+    }
+
+    public async Task<MealDto> GetMealByIdAsync(int id)
+    {
+        var meal = await _dbContext.Meals
+            .Include(m => m.Pricing)
+                .ThenInclude(p => p.Costs)
+            .Include(m => m.Ingredients)
+                .ThenInclude(i => i.Products)
+                    .ThenInclude(p => p.Product)
+                        .ThenInclude(p => p.Allergens)
+            .Include(m => m.Images)
+            .Include(m => m.Allergens)
+                .ThenInclude(a => a.Allergens)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (meal == null)
+        {
+            return null;
+        }
+
+        return MapMealToDto(meal);
+    }
+
+    public async Task<bool> DeleteMealAsync(int id)
+    {
+        var meal = await _dbContext.Meals
+            .Include(m => m.Pricing)
+                .ThenInclude(p => p.Costs)
+            .Include(m => m.Ingredients)
+                .ThenInclude(i => i.Products)
+            .Include(m => m.Images)
+            .Include(m => m.Allergens)
+                .ThenInclude(a => a.Allergens)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (meal == null)
+        {
+            return false;
+        }
+
+        _dbContext.Allergens.RemoveRange(meal.Allergens.Allergens);
+        _dbContext.MealProducts.RemoveRange(meal.Ingredients.Products);
+        _dbContext.MealCosts.RemoveRange(meal.Pricing.Costs);
+        _dbContext.MealImages.RemoveRange(meal.Images);
+        _dbContext.MealAllergens.Remove(meal.Allergens);
+        _dbContext.MealPricings.Remove(meal.Pricing);
+        _dbContext.MealIngredients.Remove(meal.Ingredients);
+        _dbContext.Meals.Remove(meal);
+
+        await _dbContext.SaveChangesAsync();
+
+        return true;
     }
 
     public void UpdateMealAfterProductChange(Meal meal)
@@ -53,11 +260,6 @@ public class MealService
 
         meal.Allergens.Allergens = uniqueAllergens.ToList();
         _dbContext.MealAllergens.Update(meal.Allergens);
-    }
-
-    public List<string> GetAllergensForMeal(Meal meal)
-    {
-        return meal.Allergens.Allergens.Select(a => a.Name).ToList();
     }
 
     public async Task<string> SaveImageAsync(IFormFile image)
@@ -111,8 +313,8 @@ public class MealService
                     ProductId = p.ProductId,
                     Quantity = p.Quantity,
                     ProductName = p.Product.Name,
-                    PricePerUnit = p.Product.PricePerUnit, // Zmieniona nazwa
-                    Unit = p.Product.Unit, // Nowe pole
+                    PricePerUnit = p.Product.PricePerUnit,
+                    Unit = p.Product.Unit,
                     Allergens = p.Product.Allergens.Select(a => a.Name).ToList()
                 }).ToList()
             },
