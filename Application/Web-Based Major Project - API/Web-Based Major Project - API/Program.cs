@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Web_Based_Major_Project___API.Data;
 using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<MealService>();
+builder.Services.AddScoped<AllergenService>();
 builder.Services.AddCors();
 
 var app = builder.Build();

@@ -1,25 +1,26 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Services;
 
-namespace Web_Based_Major_Project___API.controllers
+namespace Web_Based_Major_Project___API.Controllers
 {
     [Authorize]
     [Route("api/allergens")]
     public class AllergensController : ControllerBase
     {
-        private readonly RestaurantContext _dbContext;
+        private readonly AllergenService _allergenService;
 
-        public AllergensController(RestaurantContext dbContext)
+        public AllergensController(AllergenService allergenService)
         {
-            _dbContext = dbContext;
+            _allergenService = allergenService;
         }
 
         // GET: api/allergens
         [HttpGet]
         public ActionResult GetAllergens()
         {
-            var allergens = _dbContext.Allergens.ToList();
+            var allergens = _allergenService.GetAllergens();
             return Ok(allergens);
         }
 
@@ -27,7 +28,7 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpGet("{id}")]
         public ActionResult<Allergen> GetAllergen(int id)
         {
-            var allergen = _dbContext.Allergens.FirstOrDefault(a => a.Id == id);
+            var allergen = _allergenService.GetAllergenById(id);
             if (allergen == null)
             {
                 return NotFound();
@@ -39,8 +40,7 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpPost]
         public ActionResult<Allergen> CreateAllergen([FromBody] Allergen allergen)
         {
-            _dbContext.Allergens.Add(allergen);
-            _dbContext.SaveChanges();
+            _allergenService.AddAllergen(allergen);
             return CreatedAtAction("GetAllergen", new { id = allergen.Id }, allergen);
         }
 
@@ -48,13 +48,12 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpPut("{id}")]
         public IActionResult UpdateAllergen(int id, [FromBody] Allergen allergen)
         {
-            var existingAllergen = _dbContext.Allergens.FirstOrDefault(a => a.Id == id);
+            var existingAllergen = _allergenService.GetAllergenById(id);
             if (existingAllergen == null)
             {
                 return NotFound();
             }
-            existingAllergen.Name = allergen.Name;
-            _dbContext.SaveChanges();
+            _allergenService.UpdateAllergen(existingAllergen, allergen);
             return NoContent();
         }
 
@@ -62,13 +61,12 @@ namespace Web_Based_Major_Project___API.controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteAllergen(int id)
         {
-            var allergen = _dbContext.Allergens.FirstOrDefault(a => a.Id == id);
+            var allergen = _allergenService.GetAllergenById(id);
             if (allergen == null)
             {
                 return NotFound();
             }
-            _dbContext.Allergens.Remove(allergen);
-            _dbContext.SaveChanges();
+            _allergenService.DeleteAllergen(allergen);
             return NoContent();
         }
     }
