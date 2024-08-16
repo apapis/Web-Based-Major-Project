@@ -9,6 +9,7 @@ namespace Web_Based_Major_Project___API.Data
         {
             CreateAllergensTable(dbConnection);
             CreateStoreTable(dbConnection);
+            CreateUnitTable(dbConnection);
         }
 
         private static void CreateAllergensTable(IDbConnection dbConnection)
@@ -33,6 +34,21 @@ namespace Web_Based_Major_Project___API.Data
                 CREATE TABLE Store (
                     Id INT PRIMARY KEY IDENTITY(1,1),
                     Name NVARCHAR(50) NOT NULL
+                );
+            END;";
+
+            dbConnection.Execute(createTableQuery);
+        }
+
+        private static void CreateUnitTable(IDbConnection dbConnection)
+        {
+            var createTableQuery = @"
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Unit')
+            BEGIN
+                CREATE TABLE Unit (
+                    Id INT PRIMARY KEY IDENTITY(1,1),
+                    Name NVARCHAR(50) NOT NULL,
+                    Abbreviation NVARCHAR(50)
                 );
             END;";
 

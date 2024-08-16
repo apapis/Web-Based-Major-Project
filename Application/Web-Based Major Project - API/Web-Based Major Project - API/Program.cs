@@ -73,7 +73,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<AllergenService>();
 builder.Services.AddScoped<StoreService>();
-
+builder.Services.AddScoped<UnitService>();
 builder.Services.AddCors();
 
 var app = builder.Build();
