@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Data;
 using System.Text;
 using Web_Based_Major_Project___API.Data;
 using Web_Based_Major_Project___API.Entities;
@@ -43,20 +45,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-string connString = builder.Environment.IsDevelopment()
-    ? builder.Configuration.GetConnectionString("DefaultConnection")
-    : GetProductionConnectionString();
+string connString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<RestaurantContext>(opt =>
-{
-    opt.UseNpgsql(connString);
-}, ServiceLifetime.Scoped);
+builder.Services.AddScoped<IDbConnection>((sp) => new SqlConnection(connString));
 
-// Configure IdentityCore with Role support
-builder.Services.AddIdentityCore<ApplicationUser>(opt => opt.User.RequireUniqueEmail = true)
-    .AddRoles<IdentityRole>()
-    .AddSignInManager()
-    .AddEntityFrameworkStores<RestaurantContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddUserStore<DapperUserStore>()
+    .AddRoleStore<DapperRoleStore>()
+    .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -74,10 +70,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<MealService>();
+
 builder.Services.AddScoped<AllergenService>();
-builder.Services.AddScoped<ProductService>();
-builder.Services.AddScoped<NoteService>();
+
 builder.Services.AddCors();
 
 var app = builder.Build();
@@ -104,37 +99,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Removed: app.MapFallbackToController("Index", "Fallback");
-
-var scope = app.Services.CreateScope();
-var context = scope.ServiceProvider.GetRequiredService<RestaurantContext>();
-var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-try
+using (var scope = app.Services.CreateScope())
 {
-    context.Database.Migrate();
-    await DbStart.Initialize(context, userManager);
-}
-catch (Exception ex)
-{
-    logger.LogError(ex, "A problem occurred during migration");
+    var dbConnection = scope.ServiceProvider.GetRequiredService<IDbConnection>();
+    DatabaseInitializer.Initialize(dbConnection);  // Inicjalizacja bazy danych
 }
 
 app.Run();
-
-string GetProductionConnectionString()
-{
-    var connUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    connUrl = connUrl.Replace("postgres://", string.Empty);
-    var pgUserPass = connUrl.Split("@")[0];
-    var pgHostPortDb = connUrl.Split("@")[1];
-    var pgHostPort = pgHostPortDb.Split("/")[0];
-    var pgDb = pgHostPortDb.Split("/")[1];
-    var pgUser = pgUserPass.Split(":")[0];
-    var pgPass = pgUserPass.Split(":")[1];
-    var pgHost = pgHostPort.Split(":")[0];
-    var pgPort = pgHostPort.Split(":")[1];
-    var updatedHost = pgHost.Replace("flycast", "internal");
-
-    return $"Server={updatedHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
-}

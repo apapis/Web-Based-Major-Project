@@ -1,44 +1,67 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
 using Web_Based_Major_Project___API.Entities;
 
 namespace Web_Based_Major_Project___API.Services
 {
     public class AllergenService
     {
-        private readonly RestaurantContext _dbContext;
+        private readonly IDbConnection _dbConnection;
 
-        public AllergenService(RestaurantContext dbContext)
+        public AllergenService(IDbConnection dbConnection)
         {
-            _dbContext = dbContext;
+            _dbConnection = dbConnection;
         }
 
-        public List<Allergen> GetAllergens()
+        public async Task<List<Allergen>> GetAllergensAsync()
         {
-            return _dbContext.Allergens.ToList();
+            var sql = "SELECT * FROM Allergens";
+            var allergens = await _dbConnection.QueryAsync<Allergen>(sql);
+            return allergens.ToList();
         }
 
-        public Allergen GetAllergenById(int id)
+        public async Task<Allergen> GetAllergenByIdAsync(int id)
         {
-            return _dbContext.Allergens.FirstOrDefault(a => a.Id == id);
+            var sql = "SELECT * FROM Allergens WHERE Id = @Id";
+            var allergen = await _dbConnection.QuerySingleOrDefaultAsync<Allergen>(sql, new { Id = id });
+            return allergen;
         }
 
-        public void AddAllergen(Allergen allergen)
+        public async Task AddAllergenAsync(Allergen allergen)
         {
-            _dbContext.Allergens.Add(allergen);
-            _dbContext.SaveChanges();
+            ValidateAllergen(allergen);
+
+            var sql = "INSERT INTO Allergens (Name) VALUES (@Name)";
+            await _dbConnection.ExecuteAsync(sql, allergen);
         }
 
-        public void UpdateAllergen(Allergen existingAllergen, Allergen updatedAllergen)
+        public async Task UpdateAllergenAsync(Allergen existingAllergen)
         {
-            existingAllergen.Name = updatedAllergen.Name;
-            _dbContext.SaveChanges();
+            ValidateAllergen(existingAllergen);
+
+            var sql = "UPDATE Allergens SET Name = @Name WHERE Id = @Id";
+            await _dbConnection.ExecuteAsync(sql, new { existingAllergen.Name, existingAllergen.Id });
         }
 
-        public void DeleteAllergen(Allergen allergen)
+        public async Task DeleteAllergenAsync(int id)
         {
-            _dbContext.Allergens.Remove(allergen);
-            _dbContext.SaveChanges();
+            var sql = "DELETE FROM Allergens WHERE Id = @Id";
+            await _dbConnection.ExecuteAsync(sql, new { Id = id });
+        }
+
+        private void ValidateAllergen(Allergen allergen)
+        {
+            var validationContext = new ValidationContext(allergen, serviceProvider: null, items: null);
+            var validationResults = new List<ValidationResult>();
+
+            if (!Validator.TryValidateObject(allergen, validationContext, validationResults, validateAllProperties: true))
+            {
+                throw new ValidationException(string.Join(", ", validationResults.Select(r => r.ErrorMessage)));
+            }
         }
     }
 }
