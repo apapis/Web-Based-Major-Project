@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Models;
 
 namespace Web_Based_Major_Project___API.Services
 {

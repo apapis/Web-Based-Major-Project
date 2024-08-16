@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Models;
 using Web_Based_Major_Project___API.Services;
 
 namespace Web_Based_Major_Project___API.Controllers
