@@ -72,6 +72,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<AllergenService>();
+builder.Services.AddScoped<StoreService>();
 
 builder.Services.AddCors();
 
