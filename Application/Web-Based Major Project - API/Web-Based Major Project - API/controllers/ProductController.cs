@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Web_Based_Major_Project___API.Entities;
 using Web_Based_Major_Project___API.Models;
@@ -8,78 +9,105 @@ using Web_Based_Major_Project___API.Services;
 
 namespace Web_Based_Major_Project___API.Controllers
 {
-    [Authorize]
+    [ApiController]
     [Route("api/products")]
     public class ProductController : ControllerBase
     {
         private readonly ProductService _productService;
-        private readonly AllergenService _allergenService;
 
-        public ProductController(ProductService productService, AllergenService allergenService)
+        public ProductController(ProductService productService)
         {
             _productService = productService;
-            _allergenService = allergenService;
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> CreateProduct([FromBody] ProductDTO productDto)
-        {
-            var product = new Product
-            {
-                Name = productDto.Name,
-                Store = productDto.Store,
-                Quantity = productDto.Quantity,
-                Price = productDto.Price,
-                PricePerUnit = productDto.PricePerUnit,
-                Unit = productDto.Unit
-            };
-
-            var createdProduct = await _productService.CreateProductAsync(product, productDto.AllergenIds);
-            return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<ProductResponseDTO>>> GetAllProducts()
         {
-            var products = await _productService.GetAllProductsAsync();
-            return Ok(products);
+            try
+            {
+                var products = await _productService.GetProductsAsync();
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while retrieving products.");
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductResponseDTO>> GetProduct(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
+            try
             {
-                return NotFound();
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+                return Ok(product);
             }
-            return Ok(product);
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while retrieving the product.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ProductResponseDTO>> CreateProduct([FromBody] Product product)
+        {
+            try
+            {
+                var createdProduct = await _productService.CreateProductAsync(product);
+                return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProduct(int id, [FromBody] ProductDTO updatedProduct)
+        public async Task<ActionResult<ProductResponseDTO>> UpdateProduct(int id, [FromBody] Product product)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
+            if (id != product.Id)
             {
-                return NotFound();
+                return BadRequest("The ID in the URL does not match the ID in the product data.");
             }
-
-            await _productService.UpdateProductAsync(product, updatedProduct);
-            return NoContent();
+            try
+            {
+                var updatedProduct = await _productService.UpdateProductAsync(product);
+                if (updatedProduct == null)
+                {
+                    return NotFound();
+                }
+                return Ok(updatedProduct);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while updating the product.");
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
+            try
             {
-                return NotFound();
+                await _productService.DeleteProductAsync(id);
+                return NoContent();
             }
-
-            await _productService.DeleteProductAsync(product);
-            return NoContent();
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while deleting the product.");
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Web_Based_Major_Project___API.Controllers
             _mealService = mealService;
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult> CreateMeal([FromForm] CreateMealDto mealDto)
         {
@@ -31,9 +31,9 @@ namespace Web_Based_Major_Project___API.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }
+        }*/
 
-        [HttpPut("{id}")]
+        /*[HttpPut("{id}")]
         public async Task<ActionResult> UpdateMeal(int id, [FromForm] UpdateMealDto mealDto)
         {
             var updatedMeal = await _mealService.UpdateMealAsync(id, mealDto);
@@ -60,7 +60,7 @@ namespace Web_Based_Major_Project___API.Controllers
                 return NotFound();
             }
             return Ok(mealDto);
-        }
+        }*/
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteMeal(int id)

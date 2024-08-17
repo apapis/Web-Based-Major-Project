@@ -70,10 +70,10 @@ namespace Web_Based_Major_Project___API.Entities
                 .WithMany()
                 .UsingEntity(j => j.ToTable("MealAllergenMap"));
 
-            modelBuilder.Entity<Product>()
+            /*modelBuilder.Entity<Product>()
                 .HasMany(p => p.Allergens)
                 .WithMany()
-                .UsingEntity(j => j.ToTable("ProductAllergens"));
+                .UsingEntity(j => j.ToTable("ProductAllergens"));*/
 
             modelBuilder.Entity<Menu>()
                 .HasKey(m => m.Id);

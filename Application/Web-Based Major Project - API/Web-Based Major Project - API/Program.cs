@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Data;
 using System.Text;
+using System.Text.Json.Serialization;
 using Web_Based_Major_Project___API.Data;
 using Web_Based_Major_Project___API.Entities;
 using Web_Based_Major_Project___API.Services;
@@ -13,7 +14,12 @@ using Web_Based_Major_Project___API.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -74,6 +80,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AllergenService>();
 builder.Services.AddScoped<StoreService>();
 builder.Services.AddScoped<UnitService>();
+builder.Services.AddScoped<ProductService>();
 builder.Services.AddCors();
 
 var app = builder.Build();

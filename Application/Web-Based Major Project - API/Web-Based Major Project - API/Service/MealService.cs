@@ -20,7 +20,7 @@ public class MealService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<MealDto> CreateMealAsync(CreateMealDto mealDto)
+    /*public async Task<MealDto> CreateMealAsync(CreateMealDto mealDto)
     {
         if (mealDto.NumberOfPeople <= 0)
         {
@@ -193,7 +193,7 @@ public class MealService
         }
 
         return MapMealToDto(meal);
-    }
+    }*/
 
     public async Task<bool> DeleteMealAsync(int id)
     {
@@ -239,7 +239,7 @@ public class MealService
         return meal.Ingredients.Products.Sum(mp => mp.Quantity * mp.Product.PricePerUnit);
     }
 
-    public void AggregateAllergens(Meal meal)
+    /*public void AggregateAllergens(Meal meal)
     {
         var uniqueAllergens = new HashSet<Allergen>();
 
@@ -260,7 +260,7 @@ public class MealService
 
         meal.Allergens.Allergens = uniqueAllergens.ToList();
         _dbContext.MealAllergens.Update(meal.Allergens);
-    }
+    }*/
 
     public async Task<string> SaveImageAsync(IFormFile image)
     {
@@ -286,7 +286,7 @@ public class MealService
         return $"{baseUrl}/uploads/images/{fileName}";
     }
 
-    public MealDto MapMealToDto(Meal meal)
+    /*public MealDto MapMealToDto(Meal meal)
     {
         return new MealDto
         {
@@ -321,5 +321,5 @@ public class MealService
             Allergens = meal.Allergens.Allergens.Select(a => a.Name).ToList(),
             ImageUrls = meal.Images.Select(i => i.ImageUrl).ToList()
         };
-    }
+    }*/
 }
