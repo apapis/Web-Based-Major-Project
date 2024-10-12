@@ -81,6 +81,7 @@ builder.Services.AddScoped<AllergenService>();
 builder.Services.AddScoped<StoreService>();
 builder.Services.AddScoped<UnitService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<MealService>();
 builder.Services.AddCors();
 
 var app = builder.Build();

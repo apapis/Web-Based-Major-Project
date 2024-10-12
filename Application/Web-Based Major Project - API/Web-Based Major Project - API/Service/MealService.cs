@@ -1,325 +1,296 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using Dapper;
 using Web_Based_Major_Project___API.DTO;
-using Web_Based_Major_Project___API.Entities;
+using Web_Based_Major_Project___API.Entities.Meal;
 
-public class MealService
+namespace Web_Based_Major_Project___API.Services
 {
-    private readonly RestaurantContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public MealService(RestaurantContext dbContext, IHttpContextAccessor httpContextAccessor)
+    public class MealService
     {
-        _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
-    }
+        private readonly IDbConnection _dbConnection;
 
-    /*public async Task<MealDto> CreateMealAsync(CreateMealDto mealDto)
-    {
-        if (mealDto.NumberOfPeople <= 0)
+        public MealService(IDbConnection dbConnection)
         {
-            throw new ArgumentException("NumberOfPeople must be greater than 0.");
+            _dbConnection = dbConnection;
         }
 
-        if (string.IsNullOrEmpty(mealDto.Name))
+        public async Task<IEnumerable<Meal>> GetAllMealsAsync()
         {
-            throw new ArgumentException("Meal name is required.");
-        }
-
-        var products = JsonConvert.DeserializeObject<List<CreateMealProductDto>>(mealDto.Products);
-        var costs = JsonConvert.DeserializeObject<List<CreateMealCostDto>>(mealDto.Costs);
-
-        var meal = new Meal
-        {
-            Name = mealDto.Name,
-            Description = mealDto.Description,
-            NumberOfPeople = mealDto.NumberOfPeople
-        };
-
-        _dbContext.Meals.Add(meal);
-        await _dbContext.SaveChangesAsync(); // Save the Meal entity first
-
-        meal.Pricing = new MealPricing
-        {
-            Id = meal.Id, // Ensure the Ids match
-            Price = mealDto.Price,
-            Costs = costs.Select(c => new MealCost { Name = c.Name, Value = c.Value, MealPricingId = meal.Id }).ToList()
-        };
-
-        meal.Ingredients = new MealIngredients
-        {
-            Id = meal.Id, // Ensure the Ids match
-            Products = products.Select(p => new MealProduct { ProductId = p.ProductId, Quantity = p.Quantity, MealIngredientsId = meal.Id }).ToList()
-        };
-
-        meal.Allergens = new MealAllergens
-        {
-            Id = meal.Id,
-            MealId = meal.Id
-        };
-
-        _dbContext.MealPricings.Add(meal.Pricing);
-        _dbContext.MealIngredients.Add(meal.Ingredients);
-        _dbContext.MealAllergens.Add(meal.Allergens);
-
-        if (mealDto.Images != null && mealDto.Images.Count > 0)
-        {
-            foreach (var image in mealDto.Images)
+            var meals = await _dbConnection.QueryAsync<Meal>("SELECT * FROM Meal");
+            foreach (var meal in meals)
             {
-                if (image != null && image.Length > 0)
+                await PopulateMealRelatedData(meal);
+            }
+            return meals;
+        }
+
+        public async Task<Meal> GetMealByIdAsync(int id)
+        {
+            var meal = await _dbConnection.QuerySingleOrDefaultAsync<Meal>("SELECT * FROM Meal WHERE Id = @Id", new { Id = id });
+            if (meal != null)
+            {
+                await PopulateMealRelatedData(meal);
+            }
+            return meal;
+        }
+
+        public async Task<int> CreateMealAsync(MealDTO mealDto)
+        {
+            ValidateMealDto(mealDto);
+            var meal = MapDtoToMeal(mealDto);
+
+            if (_dbConnection.State != ConnectionState.Open)
+            {
+                _dbConnection.Open(); // U¿ycie metody synchronicznej
+            }
+
+            using var transaction = _dbConnection.BeginTransaction();
+            try
+            {
+                var sql = @"
+            INSERT INTO Meal (Name, Description, Price)
+            VALUES (@Name, @Description, @Price);
+            SELECT CAST(SCOPE_IDENTITY() as int)";
+                var id = await _dbConnection.QuerySingleAsync<int>(sql, meal, transaction);
+                meal.Id = id;
+
+                await InsertMealRelatedData(meal, transaction);
+
+                transaction.Commit();
+                return id;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+            finally
+            {
+                if (_dbConnection.State == ConnectionState.Open)
                 {
-                    var imageUrl = await SaveImageAsync(image);
-                    var mealImage = new MealImage { ImageUrl = imageUrl, MealId = meal.Id };
-                    _dbContext.MealImages.Add(mealImage);
+                    _dbConnection.Close();
                 }
             }
         }
 
-        await _dbContext.SaveChangesAsync(); // Save all related entities
 
-        AggregateAllergens(meal);
-        UpdateMealAfterProductChange(meal);
 
-        await _dbContext.SaveChangesAsync();
-
-        return MapMealToDto(meal);
-    }
-
-    public async Task<MealDto> UpdateMealAsync(int id, UpdateMealDto mealDto)
-    {
-        var meal = await _dbContext.Meals
-            .Include(m => m.Pricing)
-                .ThenInclude(p => p.Costs)
-            .Include(m => m.Ingredients)
-                .ThenInclude(i => i.Products)
-                    .ThenInclude(p => p.Product)
-                        .ThenInclude(p => p.Allergens)
-            .Include(m => m.Images)
-            .Include(m => m.Allergens)
-                .ThenInclude(a => a.Allergens)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
-        if (meal == null)
+        public async Task<bool> UpdateMealAsync(int id, MealDTO mealDto)
         {
-            return null;
-        }
+            ValidateMealDto(mealDto);
+            var meal = MapDtoToMeal(mealDto);
+            meal.Id = id;
 
-        var products = JsonConvert.DeserializeObject<List<CreateMealProductDto>>(mealDto.Products);
-        var costs = JsonConvert.DeserializeObject<List<CreateMealCostDto>>(mealDto.Costs);
-        var existingImageUrls = JsonConvert.DeserializeObject<List<string>>(mealDto.ExistingImageUrls);
-
-        meal.Name = mealDto.Name;
-        meal.Description = mealDto.Description;
-        meal.NumberOfPeople = mealDto.NumberOfPeople;
-        meal.Pricing.Price = mealDto.Price;
-
-        _dbContext.MealProducts.RemoveRange(meal.Ingredients.Products);
-        meal.Ingredients.Products = products.Select(p => new MealProduct { ProductId = p.ProductId, Quantity = p.Quantity, MealIngredientsId = meal.Ingredients.Id }).ToList();
-
-        _dbContext.MealCosts.RemoveRange(meal.Pricing.Costs);
-        meal.Pricing.Costs = costs.Select(c => new MealCost { Name = c.Name, Value = c.Value, MealPricingId = meal.Pricing.Id }).ToList();
-
-        if (mealDto.Images != null && mealDto.Images.Count > 0)
-        {
-            var imagesToRemove = meal.Images.Where(i => !existingImageUrls.Contains(i.ImageUrl)).ToList();
-            _dbContext.MealImages.RemoveRange(imagesToRemove);
-
-            foreach (var image in mealDto.Images)
+            // Sprawdzenie, czy po³¹czenie jest otwarte
+            if (_dbConnection.State != ConnectionState.Open)
             {
-                if (image != null && image.Length > 0)
-                {
-                    var imageUrl = await SaveImageAsync(image);
-                    var mealImage = new MealImage { ImageUrl = imageUrl, MealId = meal.Id };
-                    _dbContext.MealImages.Add(mealImage);
-                }
+                _dbConnection.Open(); // Otwórz po³¹czenie, jeœli jest zamkniête
             }
-        }
-        else
-        {
-            var imagesToRemove = meal.Images.Where(i => !existingImageUrls.Contains(i.ImageUrl)).ToList();
-            _dbContext.MealImages.RemoveRange(imagesToRemove);
-        }
 
-        await _dbContext.SaveChangesAsync();
-
-        AggregateAllergens(meal);
-        UpdateMealAfterProductChange(meal);
-
-        await _dbContext.SaveChangesAsync();
-
-        return MapMealToDto(meal);
-    }
-
-    public async Task<IEnumerable<MealDto>> GetAllMealsAsync()
-    {
-        var meals = await _dbContext.Meals
-            .Include(m => m.Pricing)
-                .ThenInclude(p => p.Costs)
-            .Include(m => m.Ingredients)
-                .ThenInclude(i => i.Products)
-                    .ThenInclude(p => p.Product)
-                        .ThenInclude(p => p.Allergens)
-            .Include(m => m.Images)
-            .Include(m => m.Allergens)
-                .ThenInclude(a => a.Allergens)
-            .ToListAsync();
-
-        return meals.Select(m => MapMealToDto(m)).ToList();
-    }
-
-    public async Task<MealDto> GetMealByIdAsync(int id)
-    {
-        var meal = await _dbContext.Meals
-            .Include(m => m.Pricing)
-                .ThenInclude(p => p.Costs)
-            .Include(m => m.Ingredients)
-                .ThenInclude(i => i.Products)
-                    .ThenInclude(p => p.Product)
-                        .ThenInclude(p => p.Allergens)
-            .Include(m => m.Images)
-            .Include(m => m.Allergens)
-                .ThenInclude(a => a.Allergens)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
-        if (meal == null)
-        {
-            return null;
-        }
-
-        return MapMealToDto(meal);
-    }*/
-
-    public async Task<bool> DeleteMealAsync(int id)
-    {
-        var meal = await _dbContext.Meals
-            .Include(m => m.Pricing)
-                .ThenInclude(p => p.Costs)
-            .Include(m => m.Ingredients)
-                .ThenInclude(i => i.Products)
-            .Include(m => m.Images)
-            .Include(m => m.Allergens)
-                .ThenInclude(a => a.Allergens)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
-        if (meal == null)
-        {
-            return false;
-        }
-
-        _dbContext.Allergens.RemoveRange(meal.Allergens.Allergens);
-        _dbContext.MealProducts.RemoveRange(meal.Ingredients.Products);
-        _dbContext.MealCosts.RemoveRange(meal.Pricing.Costs);
-        _dbContext.MealImages.RemoveRange(meal.Images);
-        _dbContext.MealAllergens.Remove(meal.Allergens);
-        _dbContext.MealPricings.Remove(meal.Pricing);
-        _dbContext.MealIngredients.Remove(meal.Ingredients);
-        _dbContext.Meals.Remove(meal);
-
-        await _dbContext.SaveChangesAsync();
-
-        return true;
-    }
-
-    public void UpdateMealAfterProductChange(Meal meal)
-    {
-        meal.Pricing.CostOfAllIngredients = CalculateCostOfAllIngredients(meal);
-        meal.Pricing.CostOfMakeIt = meal.Pricing.CostOfAllIngredients + meal.Pricing.Costs.Sum(mc => mc.Value);
-        meal.Pricing.ProposedPrice = meal.Pricing.CostOfMakeIt / meal.NumberOfPeople;
-    }
-
-    public float CalculateCostOfAllIngredients(Meal meal)
-    {
-        if (meal.Ingredients.Products == null) return 0;
-        return meal.Ingredients.Products.Sum(mp => mp.Quantity * mp.Product.PricePerUnit);
-    }
-
-    /*public void AggregateAllergens(Meal meal)
-    {
-        var uniqueAllergens = new HashSet<Allergen>();
-
-        foreach (var mealProduct in meal.Ingredients.Products)
-        {
-            var product = _dbContext.Products
-                .Include(p => p.Allergens)
-                .FirstOrDefault(p => p.Id == mealProduct.ProductId);
-
-            if (product != null)
+            using var transaction = _dbConnection.BeginTransaction();
+            try
             {
-                foreach (var allergen in product.Allergens)
+                var sql = @"
+            UPDATE Meal 
+            SET Name = @Name, Description = @Description, Price = @Price
+            WHERE Id = @Id";
+                var affectedRows = await _dbConnection.ExecuteAsync(sql, meal, transaction);
+
+                if (affectedRows == 0)
                 {
-                    uniqueAllergens.Add(allergen);
+                    return false;
+                }
+
+                await DeleteMealRelatedData(meal.Id, transaction);
+                await InsertMealRelatedData(meal, transaction);
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+            finally
+            {
+                if (_dbConnection.State == ConnectionState.Open)
+                {
+                    _dbConnection.Close(); // Zamknij po³¹czenie po zakoñczeniu operacji
                 }
             }
         }
 
-        meal.Allergens.Allergens = uniqueAllergens.ToList();
-        _dbContext.MealAllergens.Update(meal.Allergens);
-    }*/
 
-    public async Task<string> SaveImageAsync(IFormFile image)
-    {
-        var folderPath = Path.Combine("wwwroot", "uploads", "images");
-        var folderFullPath = Path.Combine(Directory.GetCurrentDirectory(), folderPath);
-
-        if (!Directory.Exists(folderFullPath))
+        public async Task<bool> DeleteMealAsync(int id)
         {
-            Directory.CreateDirectory(folderFullPath);
-        }
-
-        var fileName = $"{Guid.NewGuid()}_{image.FileName}";
-        var filePath = Path.Combine(folderFullPath, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await image.CopyToAsync(stream);
-        }
-
-        var request = _httpContextAccessor.HttpContext.Request;
-        //var baseUrl = $"{request.Scheme}://{request.Host}";
-        var baseUrl = $"{request.Scheme}://192.168.18.133:5000";
-        return $"{baseUrl}/uploads/images/{fileName}";
-    }
-
-    /*public MealDto MapMealToDto(Meal meal)
-    {
-        return new MealDto
-        {
-            Id = meal.Id,
-            Name = meal.Name,
-            Description = meal.Description,
-            NumberOfPeople = meal.NumberOfPeople,
-            Pricing = new MealPricingDto
+            // Sprawdzenie, czy po³¹czenie jest otwarte
+            if (_dbConnection.State != ConnectionState.Open)
             {
-                ProposedPrice = meal.Pricing.ProposedPrice,
-                Price = meal.Pricing.Price,
-                Costs = meal.Pricing.Costs.Select(c => new MealCostDto
+                _dbConnection.Open(); // Otwórz po³¹czenie, jeœli jest zamkniête
+            }
+            using var transaction = _dbConnection.BeginTransaction();
+            try
+            {
+                await DeleteMealRelatedData(id, transaction);
+
+                var sql = "DELETE FROM Meal WHERE Id = @Id";
+                var affectedRows = await _dbConnection.ExecuteAsync(sql, new { Id = id }, transaction);
+
+                transaction.Commit();
+                return affectedRows > 0;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+            finally
+            {
+                if (_dbConnection.State == ConnectionState.Open)
                 {
-                    Name = c.Name,
-                    Value = c.Value
-                }).ToList(),
-                CostOfAllIngredients = meal.Pricing.CostOfAllIngredients,
-                CostOfMakeIt = meal.Pricing.CostOfMakeIt
-            },
-            Ingredients = new MealIngredientsDto
+                    _dbConnection.Close(); // Zamknij po³¹czenie po zakoñczeniu operacji
+                }
+            }
+        }
+
+        private async Task PopulateMealRelatedData(Meal meal)
+        {
+            meal.Images = (await _dbConnection.QueryAsync<MealImage>("SELECT * FROM MealImage WHERE MealId = @Id", new { meal.Id })).ToList();
+            meal.MealProducts = (await _dbConnection.QueryAsync<MealProduct>("SELECT * FROM MealProduct WHERE MealId = @Id", new { meal.Id })).ToList();
+            meal.MealAllergenIds = (await _dbConnection.QueryAsync<int>("SELECT AllergenId FROM MealAllergen WHERE MealId = @Id", new { meal.Id })).ToList();
+            meal.MealPricing = await _dbConnection.QuerySingleOrDefaultAsync<MealPricing>("SELECT * FROM MealPricing WHERE MealId = @Id", new { meal.Id });
+            meal.MealCosts = (await _dbConnection.QueryAsync<MealCost>("SELECT * FROM MealCost WHERE MealId = @Id", new { meal.Id })).ToList();
+        }
+
+        private async Task InsertMealRelatedData(Meal meal, IDbTransaction transaction)
+        {
+            foreach (var image in meal.Images)
             {
-                Products = meal.Ingredients.Products.Select(p => new MealProductDto
+                var imageSql = "INSERT INTO MealImage (ImageUrl, MealId) VALUES (@ImageUrl, @MealId); SELECT CAST(SCOPE_IDENTITY() as int)";
+                image.Id = await _dbConnection.QuerySingleAsync<int>(imageSql, new { image.ImageUrl, MealId = meal.Id }, transaction);
+            }
+
+            foreach (var product in meal.MealProducts)
+            {
+                var productSql = "INSERT INTO MealProduct (ProductId, MealId, Quantity) VALUES (@ProductId, @MealId, @Quantity); SELECT CAST(SCOPE_IDENTITY() as int)";
+                product.Id = await _dbConnection.QuerySingleAsync<int>(productSql, new { product.ProductId, MealId = meal.Id, product.Quantity }, transaction);
+            }
+
+            foreach (var allergenId in meal.MealAllergenIds)
+            {
+                await _dbConnection.ExecuteAsync(
+                    "INSERT INTO MealAllergen (MealId, AllergenId) VALUES (@MealId, @AllergenId)",
+                    new { MealId = meal.Id, AllergenId = allergenId },
+                    transaction
+                );
+            }
+
+            if (meal.MealPricing != null)
+            {
+                // Wstawienie rekordu do MealPricing z prawid³owym MealId
+                var pricingSql = @"
+            INSERT INTO MealPricing (MealId, NumberOfPeople, CostOfAllIngredients, CostOfMakeIt, ProposedPrice) 
+            VALUES (@MealId, @NumberOfPeople, @CostOfAllIngredients, @CostOfMakeIt, @ProposedPrice);
+            SELECT CAST(SCOPE_IDENTITY() as int)";
+                meal.MealPricing.Id = await _dbConnection.QuerySingleAsync<int>(pricingSql,
+                    new
+                    {
+                        MealId = meal.Id, // Przypisujemy MealId
+                        meal.MealPricing.NumberOfPeople,
+                        meal.MealPricing.CostOfAllIngredients,
+                        meal.MealPricing.CostOfMakeIt,
+                        meal.MealPricing.ProposedPrice
+                    },
+                    transaction);
+
+                // Aktualizuj Meal z MealPricingId
+                var updateMealSql = "UPDATE Meal SET MealPricingId = @MealPricingId WHERE Id = @MealId";
+                await _dbConnection.ExecuteAsync(updateMealSql, new { MealPricingId = meal.MealPricing.Id, MealId = meal.Id }, transaction);
+            }
+
+            foreach (var cost in meal.MealCosts)
+            {
+                var costSql = "INSERT INTO MealCost (Name, Value, MealId) VALUES (@Name, @Value, @MealId); SELECT CAST(SCOPE_IDENTITY() as int)";
+                cost.Id = await _dbConnection.QuerySingleAsync<int>(costSql, new { cost.Name, cost.Value, MealId = meal.Id }, transaction);
+            }
+        }
+
+
+
+        private async Task DeleteMealRelatedData(int mealId, IDbTransaction transaction)
+        {
+            await _dbConnection.ExecuteAsync("DELETE FROM MealImage WHERE MealId = @Id", new { Id = mealId }, transaction);
+            await _dbConnection.ExecuteAsync("DELETE FROM MealProduct WHERE MealId = @Id", new { Id = mealId }, transaction);
+            await _dbConnection.ExecuteAsync("DELETE FROM MealAllergen WHERE MealId = @Id", new { Id = mealId }, transaction);
+            await _dbConnection.ExecuteAsync("DELETE FROM MealPricing WHERE MealId = @Id", new { Id = mealId }, transaction);
+            await _dbConnection.ExecuteAsync("DELETE FROM MealCost WHERE MealId = @Id", new { Id = mealId }, transaction);
+        }
+
+        private void ValidateMealDto(MealDTO mealDto)
+        {
+            var validationContext = new ValidationContext(mealDto, serviceProvider: null, items: null);
+            var validationResults = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(mealDto, validationContext, validationResults, validateAllProperties: true))
+            {
+                throw new ValidationException(string.Join(", ", validationResults.Select(r => r.ErrorMessage)));
+            }
+
+            // Validate MealProducts
+            foreach (var product in mealDto.MealProducts)
+            {
+                var productContext = new ValidationContext(product, serviceProvider: null, items: null);
+                if (!Validator.TryValidateObject(product, productContext, validationResults, validateAllProperties: true))
+                {
+                    throw new ValidationException(string.Join(", ", validationResults.Select(r => r.ErrorMessage)));
+                }
+            }
+
+            // Validate MealPricing
+            if (mealDto.MealPricing != null)
+            {
+                var pricingContext = new ValidationContext(mealDto.MealPricing, serviceProvider: null, items: null);
+                if (!Validator.TryValidateObject(mealDto.MealPricing, pricingContext, validationResults, validateAllProperties: true))
+                {
+                    throw new ValidationException(string.Join(", ", validationResults.Select(r => r.ErrorMessage)));
+                }
+            }
+
+            // Validate MealCosts
+            foreach (var cost in mealDto.MealCosts)
+            {
+                var costContext = new ValidationContext(cost, serviceProvider: null, items: null);
+                if (!Validator.TryValidateObject(cost, costContext, validationResults, validateAllProperties: true))
+                {
+                    throw new ValidationException(string.Join(", ", validationResults.Select(r => r.ErrorMessage)));
+                }
+            }
+        }
+
+        private Meal MapDtoToMeal(MealDTO dto)
+        {
+            return new Meal
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Images = dto.Images.Select(i => new MealImage { ImageUrl = i.ImageUrl }).ToList(),
+                MealProducts = dto.MealProducts.Select(p => new MealProduct
                 {
                     ProductId = p.ProductId,
-                    Quantity = p.Quantity,
-                    ProductName = p.Product.Name,
-                    PricePerUnit = p.Product.PricePerUnit,
-                    Unit = p.Product.Unit,
-                    Allergens = p.Product.Allergens.Select(a => a.Name).ToList()
-                }).ToList()
-            },
-            Allergens = meal.Allergens.Allergens.Select(a => a.Name).ToList(),
-            ImageUrls = meal.Images.Select(i => i.ImageUrl).ToList()
-        };
-    }*/
+                    Quantity = p.Quantity
+                }).ToList(),
+                MealPricing = dto.MealPricing != null ? new MealPricing
+                {
+                    NumberOfPeople = dto.MealPricing.NumberOfPeople,
+                    CostOfAllIngredients = dto.MealPricing.CostOfAllIngredients,
+                    CostOfMakeIt = dto.MealPricing.CostOfMakeIt,
+                    ProposedPrice = dto.MealPricing.ProposedPrice
+                } : null,
+                MealAllergenIds = dto.MealAllergenIds,
+                MealCosts = dto.MealCosts.Select(c => new MealCost { Name = c.Name, Value = c.Value }).ToList()
+            };
+        }
+    }
 }

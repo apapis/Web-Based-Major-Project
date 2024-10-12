@@ -11,7 +11,7 @@ namespace Web_Based_Major_Project___API.Controllers
     [Route("api/menu")]
     public class MenuController : ControllerBase
     {
-        private readonly RestaurantContext _dbContext;
+        /*private readonly RestaurantContext _dbContext;
 
         public MenuController(RestaurantContext dbContext)
         {
@@ -416,5 +416,6 @@ namespace Web_Based_Major_Project___API.Controllers
         public string DayOfWeek { get; set; }
         public bool IsRestaurantOpen { get; set; }
         public List<int> MealIds { get; set; }
+    }*/
     }
 }

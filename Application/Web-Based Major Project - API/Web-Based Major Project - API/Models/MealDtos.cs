@@ -1,79 +1,77 @@
-﻿namespace Web_Based_Major_Project___API.DTO
+﻿using System.ComponentModel.DataAnnotations;
+using Web_Based_Major_Project___API.Validation;
+
+namespace Web_Based_Major_Project___API.DTO
 {
-    public class CreateMealDto
+    public class MealDTO
     {
+        
+        public int? Id { get; set; }
+        [Required(ErrorMessage = "Meal name is required.")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "Meal name must be between 1 and 100 characters.")]
         public string Name { get; set; }
+
+        [Required(ErrorMessage = "Meal description is required.")]
         public string Description { get; set; }
-        public int NumberOfPeople { get; set; }
+
+        [Required(ErrorMessage = "Price is required.")]
+        [Range(0.01, float.MaxValue, ErrorMessage = "Price must be greater than 0.")]
         public float Price { get; set; }
-        public string Products { get; set; }
-        public string Costs { get; set; }
-        public List<IFormFile> Images { get; set; }
+
+        public List<MealImageDTO> Images { get; set; } = new List<MealImageDTO>();
+
+        [Required(ErrorMessage = "Meal products are required.")]
+        public List<MealProductDTO> MealProducts { get; set; } = new List<MealProductDTO>();
+
+        public MealPricingDTO MealPricing { get; set; }
+
+        [PositiveIntList(ErrorMessage = "All allergen IDs must be positive numbers.")]
+        public List<int> MealAllergenIds { get; set; } = new List<int>();
+
+        public List<MealCostDTO> MealCosts { get; set; } = new List<MealCostDTO>();
     }
 
-    public class CreateMealCostDto
+    public class MealImageDTO
     {
-        public string Name { get; set; }
-        public float Value { get; set; }
+        [Required(ErrorMessage = "Image URL is required.")]
+        public string ImageUrl { get; set; }
     }
 
-    public class CreateMealProductDto
+    public class MealProductDTO
     {
+        [Required(ErrorMessage = "Product ID is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Product ID must be a positive number.")]
         public int ProductId { get; set; }
-        public int Quantity { get; set; }
+
+        [Required(ErrorMessage = "Quantity is required.")]
+        [Range(0.01, float.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
+        public float Quantity { get; set; }
     }
 
-    public class MealDto
+    public class MealPricingDTO
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        [Required(ErrorMessage = "NumberOfPeople is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "NumberOfPeople must be a positive number.")]
         public int NumberOfPeople { get; set; }
-        public MealPricingDto Pricing { get; set; }
-        public MealIngredientsDto Ingredients { get; set; }
-        public List<string> Allergens { get; set; }
-        public List<string> ImageUrls { get; set; }
-    }
 
-    public class MealPricingDto
-    {
-        public float ProposedPrice { get; set; }
-        public float Price { get; set; }
-        public List<MealCostDto> Costs { get; set; }
+        [Range(0, float.MaxValue, ErrorMessage = "CostOfAllIngredients must be a non-negative number.")]
         public float CostOfAllIngredients { get; set; }
+
+        [Range(0, float.MaxValue, ErrorMessage = "CostOfMakeIt must be a non-negative number.")]
         public float CostOfMakeIt { get; set; }
+
+        [Range(0, float.MaxValue, ErrorMessage = "ProposedPrice must be a non-negative number.")]
+        public float ProposedPrice { get; set; }
     }
 
-    public class MealIngredientsDto
+    public class MealCostDTO
     {
-        public List<MealProductDto> Products { get; set; }
-    }
-
-    public class MealCostDto
-    {
+        [Required(ErrorMessage = "MealCost name is required.")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "MealCost name must be between 1 and 100 characters.")]
         public string Name { get; set; }
+
+        [Required(ErrorMessage = "Value is required.")]
+        [Range(0, float.MaxValue, ErrorMessage = "Value must be a non-negative number.")]
         public float Value { get; set; }
-    }
-
-    public class MealProductDto
-    {
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-        public string ProductName { get; set; }
-        public float PricePerUnit { get; set; }
-        public string Unit { get; set; }
-        public List<string> Allergens { get; set; }
-    }
-
-    public class UpdateMealDto
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int NumberOfPeople { get; set; }
-        public float Price { get; set; }
-        public string Products { get; set; }
-        public string Costs { get; set; }
-        public List<IFormFile> Images { get; set; }
-        public string ExistingImageUrls { get; set; }
     }
 }

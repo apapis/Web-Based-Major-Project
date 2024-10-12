@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Web_Based_Major_Project___API.Entities.Meal;
 
 namespace Web_Based_Major_Project___API.Entities
 {
@@ -11,10 +12,10 @@ namespace Web_Based_Major_Project___API.Entities
         }
 
         public DbSet<Product> Products { get; set; }
-        public DbSet<Meal> Meals { get; set; }
+        /*public DbSet<Meal> Meals { get; set; }*/
         public DbSet<MealPricing> MealPricings { get; set; }
-        public DbSet<MealIngredients> MealIngredients { get; set; }
-        public DbSet<MealAllergens> MealAllergens { get; set; }
+       /* public DbSet<MealIngredients> MealIngredients { get; set; }
+        public DbSet<MealAllergens> MealAllergens { get; set; }*/
         public DbSet<MealProduct> MealProducts { get; set; }
         public DbSet<MealCost> MealCosts { get; set; }
         public DbSet<Allergen> Allergens { get; set; }
@@ -27,7 +28,7 @@ namespace Web_Based_Major_Project___API.Entities
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Meal>()
+            /*modelBuilder.Entity<Meal>()
                 .HasOne(m => m.Pricing)
                 .WithOne()
                 .HasForeignKey<MealPricing>(mp => mp.Id);
@@ -68,14 +69,14 @@ namespace Web_Based_Major_Project___API.Entities
             modelBuilder.Entity<MealAllergens>()
                 .HasMany(ma => ma.Allergens)
                 .WithMany()
-                .UsingEntity(j => j.ToTable("MealAllergenMap"));
+                .UsingEntity(j => j.ToTable("MealAllergenMap"));*/
 
             /*modelBuilder.Entity<Product>()
                 .HasMany(p => p.Allergens)
                 .WithMany()
                 .UsingEntity(j => j.ToTable("ProductAllergens"));*/
 
-            modelBuilder.Entity<Menu>()
+           /* modelBuilder.Entity<Menu>()
                 .HasKey(m => m.Id);
 
             modelBuilder.Entity<MenuMeal>()
@@ -87,7 +88,7 @@ namespace Web_Based_Major_Project___API.Entities
                 .HasForeignKey(mm => mm.MenuId);
 
             modelBuilder.Entity<MenuMeal>()
-                .HasOne(mm => mm.Meal)
+                *//*.HasOne(mm => mm.Meal)*//*
                 .WithMany(m => m.MenuMeals)
                 .HasForeignKey(mm => mm.MealId);
 
@@ -99,7 +100,7 @@ namespace Web_Based_Major_Project___API.Entities
                 new Menu { Id = 5, DayOfWeek = DayOfWeek.Friday, IsRestaurantOpen = true },
                 new Menu { Id = 6, DayOfWeek = DayOfWeek.Saturday, IsRestaurantOpen = true },
                 new Menu { Id = 7, DayOfWeek = DayOfWeek.Sunday, IsRestaurantOpen = true }
-            );
+            );*/
         }
 
     }
