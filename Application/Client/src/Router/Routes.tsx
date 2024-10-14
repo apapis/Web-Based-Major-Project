@@ -19,11 +19,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "admin",
-        element: (
-          <RequireAuth>
-            <AdminPanel />
-          </RequireAuth>
-        ),
+        element: <AdminPanel />,
         children: [
           { index: true, element: <AdminPanelPage /> },
           { path: "meals", element: <MealsPage /> },
